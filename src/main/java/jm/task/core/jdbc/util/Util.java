@@ -9,8 +9,16 @@ public class Util {
     static String user = "root";
     static String password = "root";
 
-    public static Connection getConnection() throws SQLException, ClassNotFoundException {
-        return DriverManager.getConnection(url, user, password);
+    private Util() {
     }
+
+    public static Connection getConnection()  {
+        try {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
 

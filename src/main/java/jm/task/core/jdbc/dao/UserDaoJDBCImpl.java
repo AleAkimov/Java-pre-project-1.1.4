@@ -2,66 +2,167 @@ package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class UserDaoJDBCImpl extends Util implements UserDao {
+public class UserDaoJDBCImpl implements UserDao {
     public UserDaoJDBCImpl() {
     }
 
-    public void createUsersTable() throws SQLException, ClassNotFoundException {
+    @Override
+    public void saveUser(String name, String lastName, byte age) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try{
+            conn = Util.getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement("INSERT INTO new_schema.users (name, lastname, age) VALUES (?,?,?)");
+            ps.setString(1, name);
+            ps.setString(2, lastName);
+            ps.setByte(3, age);
+            ps.executeUpdate();
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            throw new RuntimeException(e);
+        }
+        finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-        try (Connection conn = Util.getConnection();
-             Statement statement = conn.createStatement()) {
-            String sql = "CREATE TABLE IF NOT EXISTS new_schema.users (" +
+    @Override
+    public void createUsersTable(){
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = Util.getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement("CREATE TABLE IF NOT EXISTS new_schema.users (" +
                     "id BIGINT AUTO_INCREMENT PRIMARY KEY," +
                     "name VARCHAR(50) NOT NULL," +
                     "lastname VARCHAR(50) NOT NULL," +
-                    "age TINYINT NOT NULL)";
-            statement.execute(sql);
+                    "age TINYINT NOT NULL)");
+            ps.executeUpdate();
+            conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            throw new RuntimeException(e);
+        }
+        finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
+    @Override
     public void dropUsersTable() {
-        try (Connection conn = Util.getConnection();
-             Statement statement = conn.createStatement()) {
-            String sql = "DROP TABLE IF EXISTS new_schema.users";
-            statement.execute(sql);
-                    } catch (SQLException | ClassNotFoundException e) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = Util.getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement("DROP TABLE IF EXISTS new_schema.users");
+            ps.executeUpdate();
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
             throw new RuntimeException(e);
+        }
+        finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    public void saveUser(String name, String lastName, byte age) {
-        try (Connection conn = Util.getConnection();
-             Statement statement = conn.createStatement()) {
-            String sql = "INSERT INTO new_schema.users (NAME, LASTNAME, AGE) VALUES('" + name + "', '" + lastName + "', " + age + ")";
-            statement.execute(sql);
-            System.out.println("User c именем - " + name + " добавлен в базу данных");
-        } catch (SQLException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    @Override
     public void removeUserById(long id) {
-        try (Connection conn = Util.getConnection();
-             Statement statement = conn.createStatement()) {
-            String sql = "delete from new_schema.users where id=1";
-            statement.execute(sql);
-        } catch (SQLException | ClassNotFoundException e) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = Util.getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement("DELETE FROM new_schema.users WHERE id = ?");
+            ps.setLong(1, id);
+            ps.executeUpdate();
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
             throw new RuntimeException(e);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
+    @Override
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         try (Connection conn = Util.getConnection();
-            Statement statement = conn.createStatement()) {
+             Statement statement = conn.createStatement()) {
             String sql = "select * from new_schema.users";
             ResultSet rs = statement.executeQuery(sql);
             while (rs.next()) {
@@ -73,20 +174,44 @@ public class UserDaoJDBCImpl extends Util implements UserDao {
                 user.setId(id);
                 users.add(user);
             }
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return users;
     }
 
+    @Override
     public void cleanUsersTable() {
-        try (Connection conn = Util.getConnection()) {
-            Statement statement = conn.createStatement();
-            String sql = "DELETE FROM new_schema.users";
-
-            statement.execute(sql);
-        } catch (SQLException | ClassNotFoundException e) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = Util.getConnection();
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement("DELETE FROM new_schema.users");
+            ps.executeUpdate();
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
             throw new RuntimeException(e);
+        }
+        finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
