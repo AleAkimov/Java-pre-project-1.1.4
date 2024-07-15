@@ -12,7 +12,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void createUsersTable() throws SQLException, ClassNotFoundException {
-       // userDao.createUsersTable();
         userDao.createUsersTable();
     }
 
